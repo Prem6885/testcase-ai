@@ -2,3 +2,6 @@ flask
 openai
 python-dotenv
 openpyxl
+requests
+beautifulsoup4
+gunicorn
