@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Test Case Generator</title>
+<style>
+table, th, td { border:1px solid black; border-collapse:collapse; padding:8px; }
+</style>
+</head>
+<body>
+
+<h2>AI Manual Test Case Generator</h2>
+
+<textarea id="story" rows="8" cols="70" placeholder="Enter user story..."></textarea><br><br>
+<input id="url" size="70" placeholder="Enter application URL (optional)" /><br><br>
+
+<select id="tc_type">
+  <option value="Functional">Functional</option>
+  <option value="Regression">Regression</option>
+  <option value="Sanity">Sanity</option>
+  <option value="Smoke">Smoke</option>
+  <option value="UI/UX">UI/UX</option>
+  <option value="Security">Security</option>
+  <option value="Boundary">Boundary</option>
+  <option value="Exploratory">Exploratory</option>
+  <option value="Integration">Integration</option>
+  <option value="Acceptance">Acceptance</option>
+</select><br><br>
+
+<button onclick="generate()">Generate</button>
+<button onclick="downloadExcel()">Download Excel</button>
+
+<h3>Output:</h3>
+<div id="output"></div>
+
+<script>
+let lastTC=null;
+
+async function generate(){
+  const story=document.getElementById("story").value;
+  const url=document.getElementById("url").value;
+  const type=document.getElementById("tc_type").value;
+
+  const res=await fetch("/generate",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({user_story:story,url:url,tc_type:type})
+  });
+
+  lastTC=await res.json();
+  displayTable(lastTC);
+}
+
+function displayTable(tc){
+  let html="<table><tr><th>ID</th><th>Title</th><th>Type</th><th>Priority</th><th>Preconditions</th><th>Steps</th><th>Expected Result</th></tr>";
+
+  html+=`<tr>
+<td>${tc.id}</td>
+<td>${tc.title}</td>
+<td>${tc.type}</td>
+<td>${tc.priority}</td>
+<td>${tc.preconditions}</td>
+<td>${tc.steps.join("<br>")}</td>
+<td>${tc.expected_result}</td>
+</tr>`;
+
+  html+="</table>";
+  document.getElementById("output").innerHTML=html;
+}
+
+async function downloadExcel(){
+  if(!lastTC){ alert("Generate test case first!"); return; }
+
+  const res=await fetch("/download_excel",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({testcase:lastTC})
+  });
+
+  const blob=await res.blob();
+  const url=window.URL.createObjectURL(blob);
+
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="testcase.xlsx";
+  a.click();
+}
+</script>
+
+</body>
+</html>
