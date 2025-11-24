@@ -28,32 +28,33 @@ table, th, td { border:1px solid black; border-collapse:collapse; padding:8px; }
 
 <button onclick="generate()">Generate</button>
 <button onclick="downloadExcel()">Download Excel</button>
+<button onclick="clearFields()">Clear</button>
 
 <h3>Output:</h3>
 <div id="output"></div>
 
 <script>
-let lastTC=null;
+let lastTC = null;
 
 async function generate(){
-  const story=document.getElementById("story").value;
-  const url=document.getElementById("url").value;
-  const type=document.getElementById("tc_type").value;
+  const story = document.getElementById("story").value;
+  const url = document.getElementById("url").value;
+  const type = document.getElementById("tc_type").value;
 
-  const res=await fetch("/generate",{
+  const res = await fetch("/generate",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({user_story:story,url:url,tc_type:type})
+    body:JSON.stringify({user_story:story, url:url, tc_type:type})
   });
 
-  lastTC=await res.json();
+  lastTC = await res.json();
   displayTable(lastTC);
 }
 
 function displayTable(tc){
-  let html="<table><tr><th>ID</th><th>Title</th><th>Type</th><th>Priority</th><th>Preconditions</th><th>Steps</th><th>Expected Result</th></tr>";
+  let html = "<table><tr><th>ID</th><th>Title</th><th>Type</th><th>Priority</th><th>Preconditions</th><th>Steps</th><th>Expected Result</th></tr>";
 
-  html+=`<tr>
+  html += `<tr>
 <td>${tc.id}</td>
 <td>${tc.title}</td>
 <td>${tc.type}</td>
@@ -63,26 +64,34 @@ function displayTable(tc){
 <td>${tc.expected_result}</td>
 </tr>`;
 
-  html+="</table>";
-  document.getElementById("output").innerHTML=html;
+  html += "</table>";
+  document.getElementById("output").innerHTML = html;
 }
 
 async function downloadExcel(){
   if(!lastTC){ alert("Generate test case first!"); return; }
 
-  const res=await fetch("/download_excel",{
+  const res = await fetch("/download_excel",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({testcase:lastTC})
   });
 
-  const blob=await res.blob();
-  const url=window.URL.createObjectURL(blob);
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
 
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="testcase.xlsx";
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "testcase.xlsx";
   a.click();
+}
+
+function clearFields(){
+  document.getElementById("story").value = "";
+  document.getElementById("url").value = "";
+  document.getElementById("tc_type").selectedIndex = 0;
+  document.getElementById("output").innerHTML = "";
+  lastTC = null;
 }
 </script>
 
